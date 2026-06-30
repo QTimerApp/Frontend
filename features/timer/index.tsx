@@ -64,6 +64,16 @@ const Timer: React.FC = () => {
   const delayRef = useRef(startDelay);
   const audioCtxRef = useRef<AudioContext | null>(null);
   const lastInspectionBeepRef = useRef(-1);
+
+  const ensureAudioCtx = useCallback(() => {
+    if (audioCtxRef.current?.state === "closed") {
+      audioCtxRef.current = null;
+    }
+    if (!audioCtxRef.current) {
+      audioCtxRef.current = new AudioContext();
+    }
+    return audioCtxRef.current;
+  }, []);
   const hideTimeRef = useRef(hideTimeDuringSolve);
   const multiphaseRef = useRef(multiphase);
   const phaseRef = useRef(currentPhase);
@@ -245,9 +255,7 @@ const Timer: React.FC = () => {
       return;
     }
 
-    if (soundRef.current && !audioCtxRef.current) {
-      audioCtxRef.current = new AudioContext();
-    }
+    if (soundRef.current) ensureAudioCtx();
 
     const timeout = setTimeout(() => {
       if (soundRef.current && audioCtxRef.current) {
@@ -276,12 +284,12 @@ const Timer: React.FC = () => {
         const sec = Math.ceil(remaining / Time.second);
         if (sec >= 1 && sec <= 5 && sec !== lastInspectionBeepRef.current) {
           lastInspectionBeepRef.current = sec;
-          if (!audioCtxRef.current) audioCtxRef.current = new AudioContext();
+          ensureAudioCtx();
           beep(audioCtxRef.current, sec === 1 ? 440 : 880, 0.1, 0.12);
         }
         if (remaining <= 0 && lastInspectionBeepRef.current !== 0) {
           lastInspectionBeepRef.current = 0;
-          if (!audioCtxRef.current) audioCtxRef.current = new AudioContext();
+          ensureAudioCtx();
           beep(audioCtxRef.current, 330, 0.3, 0.2);
         }
       }
@@ -300,7 +308,7 @@ const Timer: React.FC = () => {
   useEffect(() => {
     if (state !== TimerState.Running) return;
     if (soundRef.current) {
-      if (!audioCtxRef.current) audioCtxRef.current = new AudioContext();
+      ensureAudioCtx();
       beep(audioCtxRef.current, 660, 0.06, 0.12);
     }
   }, [state]);
@@ -310,16 +318,27 @@ const Timer: React.FC = () => {
 
     const sid = sessionRef.current;
     if (!sid) return;
+    const solveTime = timeRef.current;
+    const solveScramble = scrambleRef.current;
     setScrambleRef.current(generateScramble(eventRef.current || DEFAULT_EVENT));
-    lastSolveTimeRef.current = time;
-    lastSolveScrambleRef.current = scrambleRef.current;
+    lastSolveTimeRef.current = solveTime;
+    lastSolveScrambleRef.current = solveScramble;
     solveService
-      .createSolve(sid, scrambleRef.current, time, Penalty.DNF)
+      .createSolve(sid, solveScramble, solveTime, Penalty.DNF)
       .then((id) => {
         lastSolveIdRef.current = id;
-        checkSolveMilestones(sid, time, Penalty.DNF, useSettingsStore.getState().settings);
+        checkSolveMilestones(sid, solveTime, Penalty.DNF, useSettingsStore.getState().settings);
       });
-  }, [state, autoDnf, time]);
+  }, [state, autoDnf]);
+
+  useEffect(() => {
+    return () => {
+      if (audioCtxRef.current?.state !== "closed") {
+        audioCtxRef.current?.close();
+      }
+      audioCtxRef.current = null;
+    };
+  }, []);
 
   const handlePenalty = useCallback((penalty: Penalty) => {
     const id = lastSolveIdRef.current;

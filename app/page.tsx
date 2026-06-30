@@ -9,38 +9,18 @@ import { ChevronRight, Clock, Plus } from "@/components/icons";
 
 export default function Home() {
   const sessions = useLiveQuery(() => db.sessions.toArray());
-  const allSolves = useLiveQuery(() => db.solves.toArray());
+  const totalSolves = useLiveQuery(() => db.solves.count(), []);
+  const todaySolves = useLiveQuery(() => {
+    const now = new Date();
+    const start = new Date(now.getFullYear(), now.getMonth(), now.getDate()).toISOString();
+    return db.solves.where("createdAt").aboveOrEqual(start).count();
+  }, []);
   const router = useRouter();
   const { openModal } = useModal();
 
   const solving = sessions && sessions.length > 0;
-
-  const totalSolves = allSolves?.length ?? 0;
   const totalSessions = sessions?.length ?? 0;
-
-  const todaySolves = allSolves?.filter((s) => {
-    const d = new Date(s.createdAt);
-    const now = new Date();
-    return d.toDateString() === now.toDateString();
-  }).length ?? 0;
-
-  const sessionSolveCounts: Record<string, number> = {};
-  const sessionLastSolve: Record<string, string> = {};
-  allSolves?.forEach((s) => {
-    sessionSolveCounts[s.sessionId] = (sessionSolveCounts[s.sessionId] || 0) + 1;
-    const existing = sessionLastSolve[s.sessionId];
-    if (!existing || s.createdAt > existing) {
-      sessionLastSolve[s.sessionId] = s.createdAt;
-    }
-  });
-
-  const sortedSessions = sessions
-    ? [...sessions].sort((a, b) => {
-        const aDate = sessionLastSolve[a.id] || a.createdAt;
-        const bDate = sessionLastSolve[b.id] || b.createdAt;
-        return bDate.localeCompare(aDate);
-      })
-    : [];
+  const sortedSessions = sessions ? [...sessions].sort((a, b) => (b.updatedAt || b.createdAt).localeCompare(a.updatedAt || a.createdAt)) : [];
 
   return (
     <>
@@ -88,8 +68,6 @@ export default function Home() {
               </div>
               {sortedSessions.map((session) => {
                 const puzzle = PUZZLE_TYPES.find((p) => p.name === session.eventId);
-                const count = sessionSolveCounts[session.id] ?? 0;
-                const lastSolve = sessionLastSolve[session.id];
                 return (
                   <button type="button"
                     key={session.id}
@@ -103,16 +81,6 @@ export default function Home() {
                       <div className="text-sm font-medium text-primary truncate">{session.name}</div>
                       <div className="flex items-center gap-2 text-[11px] text-muted">
                         <span>{puzzle?.name ?? session.eventId}</span>
-                        <span>·</span>
-                        <span>{count} solve{count !== 1 ? "s" : ""}</span>
-                        {lastSolve && (
-                          <>
-                            <span>·</span>
-                            <span className="tabular-nums">
-                              {new Date(lastSolve).toLocaleDateString(undefined, { month: "short", day: "numeric" })}
-                            </span>
-                          </>
-                        )}
                       </div>
                     </div>
                     <ChevronRight className="size-4 text-muted/40 shrink-0" />

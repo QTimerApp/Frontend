@@ -5,6 +5,7 @@ import {
   useContext,
   useState,
   useCallback,
+  useMemo,
   type ReactNode,
 } from "react";
 import { ModalType, DeleteTarget, type ModalData } from "@/types/modal";
@@ -38,10 +39,13 @@ export function ModalProvider({ children }: { children: ReactNode }) {
     setModalData({});
   }, []);
 
+  const value = useMemo(
+    () => ({ activeModal, modalData, openModal, closeModal }),
+    [activeModal, modalData, openModal, closeModal],
+  );
+
   return (
-    <ModalContext.Provider
-      value={{ activeModal, modalData, openModal, closeModal }}
-    >
+    <ModalContext.Provider value={value}>
       {children}
     </ModalContext.Provider>
   );

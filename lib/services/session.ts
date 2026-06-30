@@ -6,8 +6,8 @@ import { solveRepository } from "../repositories/solve";
 export const sessionService = {
   async createSession(name: string, eventId: string): Promise<DBSession> {
     const now = new Date().toISOString();
-    const all = await sessionRepository.findAll();
-    const maxOrder = all.reduce((m, s) => Math.max(m, s.sortOrder ?? 0), 0);
+    const last = await db.sessions.orderBy("sortOrder").last();
+    const maxOrder = last?.sortOrder ?? 0;
     const session: DBSession = {
       id: generateId(),
       name,

@@ -25,7 +25,7 @@ export function AppToaster() {
 }
 
 export function SettingsWatcher() {
-  const settings = useSettingsStore((s) => s.settings);
+  const notifySettingsChange = useSettingsStore((s) => s.settings.notifySettingsChange);
   const hydrated = useSettingsStore((s) => s.hydrated);
   const ready = useRef(false);
 
@@ -35,13 +35,13 @@ export function SettingsWatcher() {
       ready.current = true;
       return;
     }
-    if (settings.notifySettingsChange) {
+    if (notifySettingsChange) {
       toast("Settings saved", {
         description: "Your preferences have been updated.",
         duration: Time.second * 2,
       });
     }
-  }, [settings, hydrated]);
+  }, [notifySettingsChange, hydrated]);
 
   return null;
 }
