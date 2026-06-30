@@ -25,7 +25,7 @@ const description =
   "A modern Rubik's Cube timer for speedcubers. Track solves, analyse averages, and improve your times.";
 
 export const viewport: Viewport = {
-  themeColor: "#0f172a",
+  themeColor: "#080604",
   width: "device-width",
   initialScale: 1,
 };

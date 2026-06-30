@@ -4,10 +4,10 @@
   "description": "A modern Rubik's Cube timer for speedcubers. Track solves, analyse averages, and improve your times.",
   "start_url": "/",
   "scope": "/",
-  "display": "standalone",
+  "display": "fullscreen",
   "orientation": "portrait",
-  "background_color": "#0f172a",
-  "theme_color": "#0f172a",
+  "background_color": "#080604",
+  "theme_color": "#080604",
   "categories": ["utilities", "games"],
   "icons": [
     {
