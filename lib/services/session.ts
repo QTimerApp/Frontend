@@ -1,3 +1,4 @@
+import { generateId } from "@/lib/utils/uuid";
 import { db, type DBSession } from "../db";
 import { sessionRepository } from "../repositories/session";
 import { solveRepository } from "../repositories/solve";
@@ -8,7 +9,7 @@ export const sessionService = {
     const all = await sessionRepository.findAll();
     const maxOrder = all.reduce((m, s) => Math.max(m, s.sortOrder ?? 0), 0);
     const session: DBSession = {
-      id: crypto.randomUUID(),
+      id: generateId(),
       name,
       eventId,
       sortOrder: maxOrder + 1,

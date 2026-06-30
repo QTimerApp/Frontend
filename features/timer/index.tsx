@@ -30,6 +30,10 @@ function PhaseSplitLabel({ ms, idx }: { ms: number; idx: number }) {
   );
 }
 
+function shouldUsePointer(activation: string): boolean {
+  return activation === TimerActivation.Click || activation === TimerActivation.Tap;
+}
+
 const Timer: React.FC = () => {
   const setScramble = useStore((s) => s.setScramble);
   const scramble = useStore((s) => s.scramble);
@@ -67,6 +71,10 @@ const Timer: React.FC = () => {
   const manualEntryRef = useRef(manualEntry);
   const manualPreviewRef = useRef<string | null>(null);
   const activationRef = useRef(timerActivation);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const pressHandlerRef = useRef<(() => void) | null>(null);
+  const releaseHandlerRef = useRef<(() => void) | null>(null);
+  const isTimerTouchRef = useRef(false);
 
   timeRef.current = time;
   scrambleRef.current = scramble;
@@ -123,6 +131,23 @@ const Timer: React.FC = () => {
       });
   }, []);
 
+  const handlePress = useCallback(() => {
+    if (activeModalRef.current) return;
+    const prev = stateRef.current;
+    dispatch({ type: "PRESS", multiphase: multiphaseRef.current });
+    if (prev === TimerState.Running) {
+      saveSolve();
+    }
+  }, [saveSolve]);
+
+  const handleRelease = useCallback(() => {
+    if (activeModalRef.current) return;
+    dispatch({ type: "RELEASE", inspectionEnabled: inspectionRef.current === "15s" });
+  }, []);
+
+  pressHandlerRef.current = handlePress;
+  releaseHandlerRef.current = handleRelease;
+
   useEffect(() => {
     const onKeyDown = (e: KeyboardEvent) => {
       if (e.code !== "Space" || e.repeat) return;
@@ -133,12 +158,7 @@ const Timer: React.FC = () => {
       if (tag === "INPUT" || tag === "TEXTAREA" || tag === "BUTTON" || tag === "SELECT") return;
       if (target.isContentEditable) return;
       e.preventDefault();
-      const prev = stateRef.current;
-      dispatch({ type: "PRESS", multiphase: multiphaseRef.current });
-
-      if (prev === TimerState.Running) {
-        saveSolve();
-      }
+      pressHandlerRef.current?.();
     };
 
     const onKeyUp = (e: KeyboardEvent) => {
@@ -146,7 +166,7 @@ const Timer: React.FC = () => {
       if (activationRef.current === TimerActivation.Click) return;
       if (activeModalRef.current) return;
       e.preventDefault();
-      dispatch({ type: "RELEASE", inspectionEnabled: inspectionRef.current === "15s" });
+      releaseHandlerRef.current?.();
     };
 
     window.addEventListener("keydown", onKeyDown);
@@ -155,27 +175,65 @@ const Timer: React.FC = () => {
       window.removeEventListener("keydown", onKeyDown);
       window.removeEventListener("keyup", onKeyUp);
     };
-  }, [saveSolve]);
+  }, []);
 
-  const handlePointerDown = useCallback((e: React.MouseEvent | React.TouchEvent) => {
-    e.preventDefault();
-    const activation = activationRef.current;
-    if (activation === TimerActivation.Spacebar) return;
-    if (activeModalRef.current) return;
-    const prev = stateRef.current;
-    dispatch({ type: "PRESS", multiphase: multiphaseRef.current });
+  useEffect(() => {
+    if (!shouldUsePointer(activationRef.current)) return;
 
-    if (prev === TimerState.Running) {
-      saveSolve();
-    }
-  }, [saveSolve]);
+    const isInTimer = (el: EventTarget | null) => {
+      if (!el || !(el instanceof HTMLElement)) return false;
+      return !!el.closest("[data-timer-container]");
+    };
 
-  const handlePointerUp = useCallback((e: React.MouseEvent | React.TouchEvent) => {
-    e.preventDefault();
-    const activation = activationRef.current;
-    if (activation === TimerActivation.Spacebar) return;
-    if (activeModalRef.current) return;
-    dispatch({ type: "RELEASE", inspectionEnabled: inspectionRef.current === "15s" });
+    let lastTouchTime = 0;
+
+    const onTouchStart = (e: TouchEvent) => {
+      lastTouchTime = Date.now();
+      if (!isInTimer(e.target)) return;
+      if (activeModalRef.current) return;
+      isTimerTouchRef.current = true;
+      pressHandlerRef.current?.();
+    };
+
+    const onTouchEnd = (e: TouchEvent) => {
+      if (!isTimerTouchRef.current) return;
+      isTimerTouchRef.current = false;
+      if (activeModalRef.current) return;
+      releaseHandlerRef.current?.();
+    };
+
+    const onTouchCancel = () => {
+      isTimerTouchRef.current = false;
+    };
+
+    const onMouseDown = (e: MouseEvent) => {
+      if (Date.now() - lastTouchTime < 500) return;
+      if (!isInTimer(e.target)) return;
+      if (activeModalRef.current) return;
+      e.preventDefault();
+      pressHandlerRef.current?.();
+    };
+
+    const onMouseUp = (e: MouseEvent) => {
+      if (Date.now() - lastTouchTime < 500) return;
+      if (activeModalRef.current) return;
+      e.preventDefault();
+      releaseHandlerRef.current?.();
+    };
+
+    document.addEventListener("touchstart", onTouchStart, { passive: true });
+    document.addEventListener("touchend", onTouchEnd, { passive: true });
+    document.addEventListener("touchcancel", onTouchCancel);
+    document.addEventListener("mousedown", onMouseDown);
+    document.addEventListener("mouseup", onMouseUp);
+
+    return () => {
+      document.removeEventListener("touchstart", onTouchStart);
+      document.removeEventListener("touchend", onTouchEnd);
+      document.removeEventListener("touchcancel", onTouchCancel);
+      document.removeEventListener("mousedown", onMouseDown);
+      document.removeEventListener("mouseup", onMouseUp);
+    };
   }, []);
 
   useEffect(() => {
@@ -204,13 +262,14 @@ const Timer: React.FC = () => {
   useEffect(() => {
     if (state !== TimerState.Running && state !== TimerState.Inspecting && state !== TimerState.Plus2Wait) return;
 
+    const initialTime = time;
     startTimeRef.current = 0;
     let rafId: number;
 
     const tick = (now: number) => {
       if (!startTimeRef.current) startTimeRef.current = now;
       const elapsed = now - startTimeRef.current;
-      const prevElapsed = time + elapsed;
+      const prevElapsed = initialTime + elapsed;
 
       if (state === TimerState.Inspecting && soundRef.current) {
         const remaining = Math.max(0, INSPECTION_DURATION_MS - prevElapsed);
@@ -332,17 +391,18 @@ const Timer: React.FC = () => {
     });
   }, [openModal]);
 
-  const isClickOrTap = timerActivation !== TimerActivation.Spacebar;
+  const usePointer = shouldUsePointer(timerActivation);
+  const pressLabel = usePointer ? "Tap" : "Space";
 
   return (
-    <div className="relative flex flex-col h-full items-center justify-center gap-6">
+    <div
+      ref={containerRef}
+      data-timer-container
+      className="relative flex flex-col h-full items-center justify-center gap-6 select-none"
+      style={{ touchAction: usePointer ? "none" : undefined }}
+    >
       <span
-        className={`text-[var(--timer-color)] text-6xl font-bold tabular-nums transition-colors flex items-center gap-1.5 ${displayStyle} ${isClickOrTap ? "select-none" : ""}`}
-        onMouseDown={isClickOrTap ? handlePointerDown : undefined}
-        onMouseUp={isClickOrTap ? handlePointerUp : undefined}
-        onTouchStart={isClickOrTap ? handlePointerDown : undefined}
-        onTouchEnd={isClickOrTap ? handlePointerUp : undefined}
-        style={isClickOrTap ? { touchAction: "manipulation" } : undefined}
+        className={`text-(--timer-color) text-6xl font-bold tabular-nums transition-colors flex items-center gap-1.5 ${displayStyle}`}
       >
         {state === TimerState.Running && hideTimeDuringSolve ? (
           <span className="animate-pulse [animation-duration:2s]">?</span>
@@ -369,12 +429,12 @@ const Timer: React.FC = () => {
 
       {inspecting && (
         <div className="text-xs text-muted font-medium">
-          {state === TimerState.Inspecting ? "Press space to start" : "Press for +2"}
+          {state === TimerState.Inspecting ? `Press ${pressLabel} to start` : `Press for +2`}
         </div>
       )}
 
       {state === TimerState.Waiting && (
-        <div className="text-xs text-muted font-medium">Press space to cancel</div>
+        <div className="text-xs text-muted font-medium">Press {pressLabel} to cancel</div>
       )}
 
       {state === TimerState.Stopped && !autoDnf && (

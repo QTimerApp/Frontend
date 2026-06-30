@@ -1,3 +1,4 @@
+import { generateId } from "@/lib/utils/uuid";
 import { solveRepository } from "../repositories/solve";
 import { db } from "../db";
 import { Penalty } from "@/types/penalty";
@@ -10,7 +11,7 @@ export const solveService = {
     penalty: Penalty | null,
     splits?: number[] | null,
   ) {
-    const id = crypto.randomUUID();
+    const id = generateId();
     await solveRepository.create({
       id,
       sessionId,
