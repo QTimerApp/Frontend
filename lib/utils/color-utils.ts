@@ -19,6 +19,19 @@ export function adjustHex(hex: string, amount: number): string {
   return `#${((r << 16) | (g << 8) | b).toString(16).padStart(6, "0")}`;
 }
 
+export function hexLuminance(hex: string): number {
+  const num = parseInt(hex.replace("#", ""), 16);
+  const r = ((num >> 16) & 0xff) / 255;
+  const g = ((num >> 8) & 0xff) / 255;
+  const b = (num & 0xff) / 255;
+  const toLinear = (c: number) => c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4);
+  return 0.2126 * toLinear(r) + 0.7152 * toLinear(g) + 0.0722 * toLinear(b);
+}
+
+export function contrastText(bg: string): string {
+  return hexLuminance(bg) > 0.5 ? "#000000" : "#ffffff";
+}
+
 export { adjustHex as adjustBrightness };
 
 export const COLOR_FIELDS = [

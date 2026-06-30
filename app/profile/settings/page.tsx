@@ -125,7 +125,7 @@ export default function ProfileSettings() {
         </div>
 
         <div className="space-y-5">
-          {/* ─── About ─── */}
+          {}
           <SectionCard icon={SECTION_ICONS.about} title="About">
             <div className="space-y-1">
               <Field label="Name">
@@ -168,7 +168,7 @@ export default function ProfileSettings() {
             </div>
           </SectionCard>
 
-          {/* ─── Events ─── */}
+          {}
           <SectionCard icon={SECTION_ICONS.events} title="Events" subtitle="Select the puzzles you compete in">
             <div className="px-4 sm:px-5 pb-5 pt-1">
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-1.5">
@@ -193,7 +193,7 @@ export default function ProfileSettings() {
             </div>
           </SectionCard>
 
-          {/* ─── Connected Accounts ─── */}
+          {}
           <SectionCard icon={SECTION_ICONS.wca} title="Connected Accounts">
             <div className="px-5 pb-3">
               <div className="flex items-center gap-3 rounded-lg p-3">
@@ -238,7 +238,7 @@ export default function ProfileSettings() {
             </div>
           </SectionCard>
 
-          {/* ─── Preferences ─── */}
+          {}
           <SectionCard icon={SECTION_ICONS.preferences} title="Preferences">
             <SettingRow label="Show WCA badge" description="Display your verified WCA checkmark and ID on your profile">
               <Toggle
@@ -280,7 +280,7 @@ export default function ProfileSettings() {
                     </button>
                     <button type="button"
                       onClick={handleSave}
-                      className="px-5 py-1.5 rounded text-sm font-semibold bg-accent text-white hover:bg-accent/90 transition-all active:scale-[0.97]"
+                      className="px-5 py-1.5 rounded text-sm font-semibold bg-accent text-[var(--accent-text)] hover:bg-accent/90 transition-all active:scale-[0.97]"
                     >
                       Save Changes
                     </button>
@@ -292,7 +292,7 @@ export default function ProfileSettings() {
         </div>
       </div>
 
-      {/* Discard confirmation dialog */}
+      {}
       <AnimatePresence>
         {showDiscardDialog && (
           <motion.div
@@ -336,7 +336,7 @@ export default function ProfileSettings() {
   );
 }
 
-/* ─── Components ─── */
+
 
 function SectionCard({ icon, title, subtitle, children }: { icon: React.ReactNode; title: string; subtitle?: string; children: React.ReactNode }) {
   return (

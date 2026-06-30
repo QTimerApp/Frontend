@@ -158,7 +158,7 @@ function ThemeEditorForm({
         </div>
         <button type="button"
           onClick={handleSave}
-          className="px-4 py-1.5 rounded-lg bg-accent text-white text-xs font-medium hover:bg-accent/90 active:scale-95 transition-all shrink-0"
+          className="px-4 py-1.5 rounded-lg bg-accent text-[var(--accent-text)] text-xs font-medium hover:bg-accent/90 active:scale-95 transition-all shrink-0"
         >
           {isEditing ? "Save" : "Create"}
         </button>
@@ -245,7 +245,7 @@ export function ThemesTab() {
             onClick={() => { setCategory(cat.id); setSearch(""); }}
             className={`shrink-0 px-2.5 py-1 rounded-full text-[11px] font-medium transition-all ${
               category === cat.id
-                ? "bg-accent text-white"
+                ? "bg-accent text-[var(--accent-text)]"
                 : "bg-bg-active/50 text-muted hover:text-primary hover:bg-bg-active"
             }`}
           >

@@ -45,9 +45,9 @@ function Panel({ side }: { side: "left" | "right" }) {
 
   const count = sorted?.length ?? 0;
 
-  const mean = computeMean(sorted);
-  const best = computeBest(sorted);
-  const dev = computeStdDev(sorted);
+  const mean = useMemo(() => computeMean(sorted), [sorted]);
+  const best = useMemo(() => computeBest(sorted), [sorted]);
+  const dev = useMemo(() => computeStdDev(sorted), [sorted]);
 
   const aoValues = useMemo(() => {
     if (!sorted) return [null, null, null, null];

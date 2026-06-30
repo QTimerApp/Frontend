@@ -85,6 +85,11 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={font.className}>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `(function(){try{var v=JSON.parse(localStorage.getItem("qtimer-theme-vars"));if(v){var s=document.createElement("style");s.textContent=":root{"+Object.keys(v).map(function(k){return k+":"+v[k]}).join(";")+"}";document.head.appendChild(s)}}catch(e){}})()`,
+          }}
+        />
         <PwaRegister />
         <ModalProvider>
           <MotionConfig reducedMotion="user">
@@ -98,7 +103,9 @@ export default function RootLayout({
                 </ErrorBoundary>
               </div>
               <ErrorBoundary>
-                <div className="flex flex-1 min-w-0 pb-14 md:pb-0">{children}</div>
+                <div className="flex flex-1 min-w-0 pb-14 md:pb-0">
+                  {children}
+                </div>
               </ErrorBoundary>
             </div>
             <CommandPalette />

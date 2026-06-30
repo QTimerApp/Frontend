@@ -14,6 +14,7 @@ import {
 import type { Solve as SolveType } from "@/types/solve";
 import { solveService } from "@/lib/services/solve";
 import { useModal, ModalType } from "@/lib/contexts/Modal";
+import { useSettingsStore } from "@/lib/stores/useSettings";
 import type { ShareCardSolveData } from "@/components/ShareCard";
 import {
   ContextMenu,
@@ -50,7 +51,8 @@ export function Solve({
   const [menuOpen, setMenuOpen] = useState(false);
   const [menuPos, setMenuPos] = useState({ x: 0, y: 0 });
   const { openModal } = useModal();
-  const color = RAINBOW[index % RAINBOW.length];
+  const rainbowSolves = useSettingsStore((s) => s.settings.rainbowSolves);
+  const rainbowColor = RAINBOW[index % RAINBOW.length];
   const { text, isDNF: dnf } = solveDisplay(solve);
   const hasPlusTwo = isPlusTwo(solve.penalty ?? null);
 
@@ -117,13 +119,21 @@ export function Solve({
         onClick={() => onSelect(solve, index)}
         onContextMenu={handleContextMenu}
       >
-        <div
-          className="w-0.5 h-5 rounded-full shrink-0"
-          style={{ background: color }}
-        />
-        <span className="text-xs font-semibold tabular-nums" style={{ color }}>
-          {(index + 1).toString().padStart(2, "0")}
-        </span>
+        {rainbowSolves ? (
+          <>
+            <div className="w-0.5 h-5 rounded-full shrink-0" style={{ background: rainbowColor }} />
+            <span className="text-xs font-semibold tabular-nums" style={{ color: rainbowColor }}>
+              {(index + 1).toString().padStart(2, "0")}
+            </span>
+          </>
+        ) : (
+          <>
+            <div className="w-0.5 h-5 rounded-full shrink-0 bg-border/30" />
+            <span className="text-xs font-semibold tabular-nums text-muted">
+              {(index + 1).toString().padStart(2, "0")}
+            </span>
+          </>
+        )}
         <span
           className={`text-xs font-medium tabular-nums flex-1 ${
             dnf

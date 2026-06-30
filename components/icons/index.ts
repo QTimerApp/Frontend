@@ -15,7 +15,6 @@ export { Gear } from "./Gear";
 export { Stats } from "./Stats";
 export { Dots } from "./Dots";
 export { DNF } from "./DNF";
-export { Filter } from "./Filter";
 export { Info } from "./Info";
 export { BackArrow } from "./BackArrow";
 export { Menu } from "./Menu";

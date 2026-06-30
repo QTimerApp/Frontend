@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useMemo } from "react";
 import { computeAo } from "@/lib/utils/stats";
 import { motion } from "framer-motion";
 import { Time } from "@/types/timer";
@@ -35,7 +35,7 @@ export function Average({
   const [menuOpen, setMenuOpen] = useState(false);
   const [menuPos, setMenuPos] = useState({ x: 0, y: 0 });
   const { openModal } = useModal();
-  const averageTime = computeAo(solves, groupSize);
+  const averageTime = useMemo(() => computeAo(solves, groupSize), [solves, groupSize]);
   if (!averageTime) return null;
 
   const handleContextMenu = useCallback((e: React.MouseEvent) => {

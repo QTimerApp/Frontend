@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { useSettingsStore } from "@/lib/stores/useSettings";
 import { useStore } from "@/lib/stores/use";
 import { Button } from "@/components/ui/Button";
@@ -76,11 +76,22 @@ export function SettingsModal() {
   const TabContent = TAB_COMPONENTS[activeTab];
   const isMobile = useMediaQuery("(max-width: 767px)");
 
+  const close = useCallback(() => setSettingsOpen(false), [setSettingsOpen]);
+
+  useEffect(() => {
+    if (!settingsOpen) return;
+    const handler = (e: KeyboardEvent) => {
+      if (e.key === "Escape") close();
+    };
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
+  }, [settingsOpen, close]);
+
   return (
     <AnimatePresence>
       {settingsOpen && (
         <motion.div
-          className="fixed inset-0 z-50"
+          className="fixed inset-0 z-50 flex items-center justify-center"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
@@ -97,13 +108,13 @@ export function SettingsModal() {
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.96, y: 12 }}
             transition={{ duration: 0.15, ease: "easeOut" }}
-            className={`absolute flex overflow-hidden bg-bg-primary shadow-2xl ${
+            className={`flex overflow-hidden bg-bg-primary shadow-2xl ${
               isMobile
-                ? "inset-0"
-                : "inset-4 md:inset-8 rounded-2xl border border-border/30"
+                ? "absolute inset-4 rounded-xl"
+                : "absolute inset-6 md:inset-10 rounded-2xl border border-border/30"
             }`}
           >
-            {/* Mobile: horizontal tab bar at top */}
+            {}
             {isMobile ? (
               <div className="flex flex-col w-full">
                 <div className="flex items-center justify-between px-4 pt-4 pb-2 shrink-0">

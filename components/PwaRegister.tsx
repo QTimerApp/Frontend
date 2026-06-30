@@ -60,7 +60,7 @@ export function PwaRegister() {
       <div className="flex items-center gap-1 shrink-0">
         <button type="button"
           onClick={install}
-          className="px-3 py-1.5 text-xs font-semibold rounded-lg bg-accent text-white hover:opacity-90 transition-opacity border-none cursor-pointer"
+          className="px-3 py-1.5 text-xs font-semibold rounded-lg bg-accent text-[var(--accent-text)] hover:opacity-90 transition-opacity border-none cursor-pointer"
         >
           Install
         </button>

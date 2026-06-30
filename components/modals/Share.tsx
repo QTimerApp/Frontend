@@ -118,7 +118,7 @@ export function ShareModal() {
               {!blobUrl && status !== "generating" && (
                 <div className="flex justify-center">
                   <button type="button" onClick={handleGenerate}
-                    className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-accent text-white text-sm font-semibold hover:bg-accent-hover transition-colors"
+                    className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-accent text-[var(--accent-text)] text-sm font-semibold hover:bg-accent-hover transition-colors"
                   >
                     <ShareIcon className="size-4" />
                     Generate Image
@@ -139,7 +139,7 @@ export function ShareModal() {
               {blobUrl && (
                 <div className="flex items-center gap-3 justify-center">
                   <button type="button" onClick={handleCopyImage}
-                    className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-accent text-white text-sm font-semibold hover:bg-accent-hover transition-colors"
+                    className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-accent text-[var(--accent-text)] text-sm font-semibold hover:bg-accent-hover transition-colors"
                   >
                     <Copy className="size-4" />
                     Copy Image

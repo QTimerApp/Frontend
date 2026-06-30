@@ -285,44 +285,6 @@ export function computeConsistencyScore(solves: SolveLike[]): number | null {
   return Math.max(0, Math.round((1 - cv) * 100));
 }
 
-export function computePBInfo(solves: SolveLike[]): PBInfo {
-  const withDates = solves.filter(s => s.createdAt);
-  const sorted = [...withDates].sort((a, b) => new Date(a.createdAt!).getTime() - new Date(b.createdAt!).getTime());
-  const valid = sorted.filter(s => !isDNFs(s)).map(s => ({ time: eMs(s), date: s.createdAt! }));
-  if (!valid.length) return { current: null, previous: null, improvement: null, firstSolve: null, pbsThisMonth: 0, daysSinceLastPB: null };
-
-  let best = valid[0].time;
-  let bestDate = valid[0].date;
-  const pbHistory: { time: number; date: string }[] = [{ time: best, date: bestDate }];
-
-  for (let i = 1; i < valid.length; i++) {
-    if (valid[i].time < best) {
-      best = valid[i].time;
-      bestDate = valid[i].date;
-      pbHistory.push({ time: best, date: bestDate });
-    }
-  }
-
-  const current = best;
-  const previous = pbHistory.length > 1 ? pbHistory[pbHistory.length - 2].time : null;
-  const improvement = current != null && previous != null ? previous - current : null;
-  const firstSolve = valid[0].time;
-
-  const now = new Date();
-  const thisMonth = now.getMonth();
-  const thisYear = now.getFullYear();
-  const pbsThisMonth = pbHistory.filter(pb => {
-    const d = new Date(pb.date);
-    return d.getMonth() === thisMonth && d.getFullYear() === thisYear;
-  }).length;
-
-  const daysSinceLastPB = current != null
-    ? Math.floor((now.getTime() - new Date(bestDate).getTime()) / Time.day)
-    : null;
-
-  return { current, previous, improvement, firstSolve, pbsThisMonth, daysSinceLastPB };
-}
-
 export function computeRecordAverages(solves: SolveLike[]): RecordAverages {
   const bestRolling = (n: number) => {
     if (solves.length < n) return null;

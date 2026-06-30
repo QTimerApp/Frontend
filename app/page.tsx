@@ -101,7 +101,7 @@ export default function Home() {
               </div>
               <button type="button"
                 onClick={() => openModal(ModalType.AddSession)}
-                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-accent text-white text-sm font-medium hover:opacity-90 active:scale-[0.97] transition-all"
+                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-accent text-(--accent-text) text-sm font-medium hover:opacity-90 active:scale-[0.97] transition-all"
               >
                 <Plus className="size-4" />
                 Create Session

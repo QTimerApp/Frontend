@@ -31,6 +31,11 @@ export function SessionTab() {
           <Toggle value={settings.autoCollapseAverages} onChange={(v) => updateSettings({ autoCollapseAverages: v })} id="auto-collapse" />
         </SettingRow>
       </Section>
+      <Section title="Appearance">
+        <SettingRow label="Rainbow solve list" description="Color solve entries with rainbow colors in the session list">
+          <Toggle value={settings.rainbowSolves} onChange={(v) => updateSettings({ rainbowSolves: v })} id="rainbow-solves" />
+        </SettingRow>
+      </Section>
     </div>
   );
 }

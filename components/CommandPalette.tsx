@@ -109,6 +109,12 @@ const BOOLEAN_SETTINGS: BoolSetting[] = [
     keywords: ["rainbow", "color lines"],
   },
   {
+    key: "rainbowSolves",
+    label: "Rainbow solve list",
+    group: "session",
+    keywords: ["rainbow", "color solves", "colorful"],
+  },
+  {
     key: "confirmDelete",
     label: "Confirm before deleting",
     group: "session",

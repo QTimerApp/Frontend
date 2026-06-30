@@ -654,7 +654,7 @@ export const THEMES: ThemeDefinition[] = [
     },
   },
 
-  // ── New Uniques ──
+  
 
   {
     id: "aurora",

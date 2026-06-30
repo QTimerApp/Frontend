@@ -55,6 +55,7 @@ export interface Settings {
   showScrambleImage: boolean;
   multiline: boolean;
   rainbowScramble: boolean;
+  rainbowSolves: boolean;
   confirmDelete: boolean;
   hideTimeDuringSolve: boolean;
   manualEntry: boolean;
@@ -84,6 +85,7 @@ export const DEFAULT_SETTINGS: Settings = {
   showScrambleImage: true,
   multiline: true,
   rainbowScramble: false,
+  rainbowSolves: true,
   confirmDelete: true,
   hideTimeDuringSolve: false,
   manualEntry: false,

@@ -77,7 +77,7 @@ export function ManualEntry({ onSubmit, onPreview }: ManualEntryProps) {
         >
           <button type="button"
             onClick={handleSubmit}
-            className="size-8 flex items-center justify-center rounded-lg bg-accent text-white hover:bg-accent/90 active:scale-90 transition-all duration-150"
+            className="size-8 flex items-center justify-center rounded-lg bg-accent text-[var(--accent-text)] hover:bg-accent/90 active:scale-90 transition-all duration-150"
           >
             <ChevronRight className="size-3.5" strokeWidth={2.5} />
           </button>
