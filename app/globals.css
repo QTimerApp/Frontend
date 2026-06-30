@@ -1,0 +1,75 @@
+@import "tailwindcss";
+@import "@dayflow/blossom-color-picker/styles.css";
+
+[data-sonner-toaster] [data-description] {
+  color: var(--text-primary) !important;
+  opacity: 0.8;
+}
+
+@keyframes shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+:root {
+  --bg-primary: #080604;
+  --bg-surface: #16110d;
+  --bg-elevated: #2a221c;
+  --bg-hover: #382e26;
+  --bg-active: #463b32;
+  --text-primary: #efe3d4;
+  --text-secondary: #b8a99a;
+  --text-muted: #8a7e72;
+  --accent: #f472b6;
+  --accent-hover: #db2777;
+  --accent-light: #f9a8d4;
+  --border: #382e26;
+  --border-subtle: rgba(239, 227, 212, 0.08);
+  --timer-color: #efe3d4;
+}
+
+@theme inline {
+  --color-bg-primary: var(--bg-primary);
+  --color-bg-surface: var(--bg-surface);
+  --color-bg-elevated: var(--bg-elevated);
+  --color-bg-hover: var(--bg-hover);
+  --color-bg-active: var(--bg-active);
+  --color-primary: var(--text-primary);
+  --color-secondary: var(--text-secondary);
+  --color-muted: var(--text-muted);
+  --color-accent: var(--accent);
+  --color-accent-hover: var(--accent-hover);
+  --color-accent-light: var(--accent-light);
+  --color-border: var(--border);
+  --color-border-subtle: var(--border-subtle);
+  --font-sans: var(--font-sans);
+}
+
+html,
+body {
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  font-family: var(--font-sans), system-ui, sans-serif;
+}
+
+@theme {
+  --shadow-sm: 0 1px 0 rgba(4,4,5,0.2),0 1.5px 0 rgba(6,6,7,0.05),0 2px 0 rgba(4,4,5,0.05);
+  --shadow-md: 0 4px 4px rgba(0,0,0,0.16);
+  --shadow-lg: 0 8px 16px rgba(0,0,0,0.24);
+}
+
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+textarea:-webkit-autofill,
+textarea:-webkit-autofill:hover,
+textarea:-webkit-autofill:focus,
+select:-webkit-autofill,
+select:-webkit-autofill:hover,
+select:-webkit-autofill:focus {
+  -webkit-box-shadow: 0 0 0 1000px var(--bg-primary) inset !important;
+  -webkit-text-fill-color: var(--text-primary) !important;
+  caret-color: var(--text-primary) !important;
+  transition: background-color 5000s ease-in-out 0s;
+}
+
