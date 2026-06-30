@@ -11,6 +11,7 @@ import { solveService } from "@/lib/services/solve";
 import { checkSolveMilestones } from "@/lib/services/notification";
 
 import { Time, TimerState, INSPECTION_DURATION_MS } from "@/types/timer";
+import { TimerActivation } from "@/types/settings";
 import { DEFAULT_EVENT } from "@/types/puzzle";
 import { Penalty } from "@/types/penalty";
 
@@ -34,7 +35,7 @@ const Timer: React.FC = () => {
   const scramble = useStore((s) => s.scramble);
   const selectedSessionId = useStore((s) => s.selectedSessionId);
   const selectedEventId = useStore((s) => s.selectedEventId);
-  const { inspection, startDelay, soundEnabled, hideTimeDuringSolve, manualEntry, multiphase } = useSettingsStore(
+  const { inspection, startDelay, soundEnabled, hideTimeDuringSolve, manualEntry, multiphase, timerActivation } = useSettingsStore(
     (s) => s.settings
   );
 
@@ -65,6 +66,7 @@ const Timer: React.FC = () => {
   const phasesRef = useRef(phases);
   const manualEntryRef = useRef(manualEntry);
   const manualPreviewRef = useRef<string | null>(null);
+  const activationRef = useRef(timerActivation);
 
   timeRef.current = time;
   scrambleRef.current = scramble;
@@ -82,10 +84,49 @@ const Timer: React.FC = () => {
   phaseRef.current = currentPhase;
   phasesRef.current = phases;
   manualEntryRef.current = manualEntry;
+  activationRef.current = timerActivation;
+
+  const saveSolve = useCallback(() => {
+    const sid = sessionRef.current;
+    if (!sid) return;
+    const penalty = hasPlus2Ref.current ? Penalty.PlusTwo : null;
+    const solveTime = timeRef.current;
+    const currentScramble = scrambleRef.current;
+    const mp = multiphaseRef.current;
+
+    if (mp > 1) {
+      const isLastPhase = phaseRef.current >= mp - 1;
+      if (!isLastPhase) return;
+      const splits = [...phasesRef.current, solveTime];
+      setScrambleRef.current(generateScramble(eventRef.current || DEFAULT_EVENT));
+      lastSolveTimeRef.current = solveTime;
+      lastSolveScrambleRef.current = currentScramble;
+      lastSolveSplitsRef.current = splits;
+      solveService
+        .createSolve(sid, currentScramble, solveTime, penalty, splits)
+        .then((id) => {
+          lastSolveIdRef.current = id;
+          checkSolveMilestones(sid, solveTime, penalty, useSettingsStore.getState().settings);
+        });
+      return;
+    }
+
+    setScrambleRef.current(generateScramble(eventRef.current || DEFAULT_EVENT));
+    lastSolveTimeRef.current = solveTime;
+    lastSolveScrambleRef.current = currentScramble;
+    lastSolveSplitsRef.current = undefined;
+    solveService
+      .createSolve(sid, currentScramble, solveTime, penalty, null)
+      .then((id) => {
+        lastSolveIdRef.current = id;
+        checkSolveMilestones(sid, solveTime, penalty, useSettingsStore.getState().settings);
+      });
+  }, []);
 
   useEffect(() => {
     const onKeyDown = (e: KeyboardEvent) => {
       if (e.code !== "Space" || e.repeat) return;
+      if (activationRef.current === TimerActivation.Click) return;
       if (activeModalRef.current) return;
       const target = e.target as HTMLElement;
       const tag = target.tagName;
@@ -93,48 +134,16 @@ const Timer: React.FC = () => {
       if (target.isContentEditable) return;
       e.preventDefault();
       const prev = stateRef.current;
-      const mp = multiphaseRef.current;
-      dispatch({ type: "PRESS", multiphase: mp });
+      dispatch({ type: "PRESS", multiphase: multiphaseRef.current });
 
       if (prev === TimerState.Running) {
-        const sid = sessionRef.current;
-        if (!sid) return;
-        const penalty = hasPlus2Ref.current ? Penalty.PlusTwo : null;
-        const solveTime = timeRef.current;
-        const currentScramble = scrambleRef.current;
-
-        if (mp > 1) {
-          const isLastPhase = phaseRef.current >= mp - 1;
-          if (!isLastPhase) return;
-          const splits = [...phasesRef.current, solveTime];
-          setScrambleRef.current(generateScramble(eventRef.current || DEFAULT_EVENT));
-          lastSolveTimeRef.current = solveTime;
-          lastSolveScrambleRef.current = currentScramble;
-          lastSolveSplitsRef.current = splits;
-          solveService
-            .createSolve(sid, currentScramble, solveTime, penalty, splits)
-            .then((id) => {
-              lastSolveIdRef.current = id;
-              checkSolveMilestones(sid, solveTime, penalty, useSettingsStore.getState().settings);
-            });
-          return;
-        }
-
-        setScrambleRef.current(generateScramble(eventRef.current || DEFAULT_EVENT));
-        lastSolveTimeRef.current = solveTime;
-        lastSolveScrambleRef.current = currentScramble;
-        lastSolveSplitsRef.current = undefined;
-        solveService
-          .createSolve(sid, currentScramble, solveTime, penalty, null)
-          .then((id) => {
-            lastSolveIdRef.current = id;
-            checkSolveMilestones(sid, solveTime, penalty, useSettingsStore.getState().settings);
-          });
+        saveSolve();
       }
     };
 
     const onKeyUp = (e: KeyboardEvent) => {
       if (e.code !== "Space") return;
+      if (activationRef.current === TimerActivation.Click) return;
       if (activeModalRef.current) return;
       e.preventDefault();
       dispatch({ type: "RELEASE", inspectionEnabled: inspectionRef.current === "15s" });
@@ -146,6 +155,27 @@ const Timer: React.FC = () => {
       window.removeEventListener("keydown", onKeyDown);
       window.removeEventListener("keyup", onKeyUp);
     };
+  }, [saveSolve]);
+
+  const handlePointerDown = useCallback((e: React.MouseEvent | React.TouchEvent) => {
+    e.preventDefault();
+    const activation = activationRef.current;
+    if (activation === TimerActivation.Spacebar) return;
+    if (activeModalRef.current) return;
+    const prev = stateRef.current;
+    dispatch({ type: "PRESS", multiphase: multiphaseRef.current });
+
+    if (prev === TimerState.Running) {
+      saveSolve();
+    }
+  }, [saveSolve]);
+
+  const handlePointerUp = useCallback((e: React.MouseEvent | React.TouchEvent) => {
+    e.preventDefault();
+    const activation = activationRef.current;
+    if (activation === TimerActivation.Spacebar) return;
+    if (activeModalRef.current) return;
+    dispatch({ type: "RELEASE", inspectionEnabled: inspectionRef.current === "15s" });
   }, []);
 
   useEffect(() => {
@@ -302,10 +332,17 @@ const Timer: React.FC = () => {
     });
   }, [openModal]);
 
+  const isClickOrTap = timerActivation !== TimerActivation.Spacebar;
+
   return (
     <div className="relative flex flex-col h-full items-center justify-center gap-6">
       <span
-        className={`text-[var(--timer-color)] text-6xl font-bold tabular-nums transition-colors flex items-center gap-1.5 ${displayStyle}`}
+        className={`text-[var(--timer-color)] text-6xl font-bold tabular-nums transition-colors flex items-center gap-1.5 ${displayStyle} ${isClickOrTap ? "select-none" : ""}`}
+        onMouseDown={isClickOrTap ? handlePointerDown : undefined}
+        onMouseUp={isClickOrTap ? handlePointerUp : undefined}
+        onTouchStart={isClickOrTap ? handlePointerDown : undefined}
+        onTouchEnd={isClickOrTap ? handlePointerUp : undefined}
+        style={isClickOrTap ? { touchAction: "manipulation" } : undefined}
       >
         {state === TimerState.Running && hideTimeDuringSolve ? (
           <span className="animate-pulse [animation-duration:2s]">?</span>
